@@ -117,6 +117,17 @@ test *args:
 typecheck:
     node node_modules/tsc7/bin/tsc -p tsconfig.json
 
+# --- Dependencies ---
+
+# Check that pnpm-lock.yaml still matches the specifiers in
+# package.json. The lockfile-only flag makes this a check and not an
+# install: pnpm resolves, finds the lockfile out of date, and exits
+# naming the specifier that moved, without writing node_modules or the
+# lockfile itself. CI runs this on every pull request; contributors run
+# `pnpm install` and commit the updated lockfile.
+lock-check:
+    pnpm install --frozen-lockfile --lockfile-only
+
 # --- Utilities ---
 
 # Check that the two-compiler wiring is intact. typescript supplies the
