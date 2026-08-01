@@ -5,11 +5,13 @@ buildmeta
 cocogitto
 commitlint
 cooldown
+deadcode
 EDITMSG
 goreleaser
 jiti
 hardlinks
 hardwrap
+knip
 linuxbrew
 lockfiles
 matrixed

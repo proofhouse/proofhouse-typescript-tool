@@ -279,7 +279,7 @@ fix-markdown *args:
 # appends itself to this list. Nothing here but dependencies.
 
 # Run every TypeScript-flavored lint gate.
-lint-ts-all: lint-biome typecheck lint-eslint
+lint-ts-all: lint-biome typecheck lint-eslint lint-deadcode lint-deadcode-production
 
 # One name for every gate that reads the source tree, so a contributor
 # and a merge check reach the same set without listing it out. The
@@ -348,6 +348,33 @@ lint-biome *args:
 # Lint TypeScript against the type-aware eslint rule set.
 lint-eslint:
     node_modules/.bin/eslint . --max-warnings=0
+
+# biome and the compiler each answer for a name where it is written. An
+# export nothing anywhere imports still reads as fine to both. knip
+# walks the import graph outward from the entry points and reports what
+# nothing reaches: a whole file, one export, a type, a package listed in
+# the manifest. Dead code is what the sibling Python repositories hand
+# to vulture.
+#
+# knip.json carries the two settings this tree needs. It names
+# src/cli.ts as the shipping entry and adds the type-assertion files
+# under tests, which nothing imports by design. Its ignore list holds
+# the three packages recipes here run by path rather than import:
+# biome, cspell, and the compiler that gates the sources.
+
+# Report files, exports, and dependencies nothing reaches.
+lint-deadcode:
+    node_modules/.bin/knip
+
+# The same walk from the shipping entry alone. Test files stop counting
+# as roots, so an export reached only from the suite reads as dead
+# rather than as public surface. Keeping this beside the everyday pass
+# means the two views have to agree while a change is still local,
+# instead of disagreeing later in a merge check.
+
+# Report dead code across the packaged surface alone.
+lint-deadcode-production:
+    node_modules/.bin/knip --production
 
 # --strict promotes every warning to a failure, so a run here lands on
 # the same verdict a merge check would. Which rules apply is
