@@ -157,3 +157,5 @@ uvx?
 pnpm
 packageManager
 [Cc]ooldown
+npm
+[Pp]odman

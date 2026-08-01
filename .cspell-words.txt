@@ -13,12 +13,16 @@ linuxbrew
 lockfiles
 matrixed
 mktemp
+orbstack
+osxkeychain
 pipefail
 prek
 proofhouse
 pyproject
 reflog
+rhysd
 rumdl
+shellcheck
 tbhb
 tmpl
 tombi
