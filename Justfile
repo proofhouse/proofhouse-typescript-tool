@@ -1,5 +1,5 @@
-set unstable := true
-set positional-arguments := true
+set unstable
+set positional-arguments
 
 # Run [script] recipes under bash rather than the default sh. On Linux
 # sh is dash, which lacks [[ ]], <<<, and set -o pipefail — constructs
@@ -152,6 +152,17 @@ format-config *args:
 format-toml:
     tombi format
 
+# The rewriting half of `lint-just`, which reports and stops there. A
+# gate that reformatted the file underneath the contributor would hide
+# the edit it made, so the two stay apart, the way `format-config` and
+# `lint-config` do. `just --fmt` is an unstable feature still, and both
+# recipes pass the flag rather than lean on the `set unstable` at the
+# top of this file, so neither stops working if that setting goes.
+
+# Rewrite this Justfile in just's own canonical format.
+format-just:
+    just --fmt --unstable
+
 # --- Fix ---
 
 # Complement to `format-markdown` (which only rewrites whitespace and
@@ -168,7 +179,7 @@ fix-markdown *args:
 # gate that lands appends itself here; prose is the first of them.
 
 # Run every linter that operates on the source tree.
-lint: lint-prose lint-spelling lint-markdown lint-config lint-yaml lint-toml
+lint: lint-prose lint-spelling lint-markdown lint-config lint-yaml lint-toml lint-just lint-editorconfig
 
 # The glob keeps vale off files whose prose nobody here writes: the
 # LICENSE and the generated changelog, vale's own synced styles, the
@@ -255,6 +266,33 @@ check-tombi-version:
     else
         echo "tombi ${local} matches the verified release"
     fi
+
+# Report drift and fail without touching the file. Nothing else in the
+# chain reads this one's layout — biome, rumdl, yamllint, and tombi
+# each answer for a different language — so absent this gate the
+# Justfile would be the last config in the tree formatted by hand.
+# `format-just` is where a fix belongs; see it for why --unstable is
+# spelled out.
+
+# Check this Justfile against just's own formatter in --check mode.
+lint-just:
+    just --fmt --check --unstable
+
+# Charset, line endings, final newline, trailing whitespace, and both
+# the tab-versus-space indent style and the indent width. .editorconfig
+# has sat here read by editors and by nothing that could fail a merge;
+# this is what makes it binding. Given no paths the checker walks what
+# git tracks, so installed packages, compiled output, and Vale's synced
+# style packages fall outside the run already.
+# .editorconfig-checker.json names the latter two again, for a caller
+# that does pass paths, and adds the changelog, whose layout belongs to
+# the tool that writes it. Upstream ships a short `ec` alias in its
+# release archives; the Homebrew formula builds the long name alone, so
+# the recipe spells it out.
+
+# Enforce .editorconfig with editorconfig-checker.
+lint-editorconfig:
+    editorconfig-checker
 
 # --- Dependencies ---
 

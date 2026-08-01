@@ -151,3 +151,4 @@ yamllint
 [Tt]ypecheck(s|ed|ing)?
 TSDoc
 configs
+[Ee]ditorconfig
