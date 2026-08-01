@@ -335,3 +335,29 @@ doctor:
         exit 1
     fi
     echo "typescript $want_api (API), tsc7 $want_gate (gate)"
+
+# `cog changelog` emits Markdown without an H1, so the pipeline prepends
+# one and writes the file before linting it in place: rumdl matches the
+# CHANGELOG.md per-file-ignores in .rumdl.toml (which disable MD024 for
+# the repeated version headings) against on-disk paths, not stdin.
+
+# Generate the full CHANGELOG.md from Conventional Commit history.
+generate-changelog:
+    cog changelog | { echo "# Changelog"; cat; } > CHANGELOG.md
+    rumdl check --fix CHANGELOG.md
+
+# Useful during release prep to see what `cog changelog` will emit
+# before committing the regeneration.
+
+# Preview the changelog entries since the last tagged release.
+preview-changelog:
+    cog changelog --at $(git describe --tags)..HEAD -t full_hash | rumdl check -d MD041 --fix --stdin
+
+# Output goes to stdout; pipe to a file or paste into the GitHub
+# release body.
+
+# Generate release notes for a version, or for HEAD if none is given.
+[script]
+generate-release-notes version="":
+    v=$([[ -n "{{ version }}" ]] && echo "v{{ version }}" || echo "..$(git rev-parse HEAD)")
+    cog changelog --at $v -t full_hash | rumdl check -d MD024,MD041 --isolated --fix --stdin
