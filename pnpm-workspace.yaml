@@ -1,0 +1,34 @@
+# Supply-chain settings for every install in this repository.
+
+# Five days of cooldown before a published version is installable here,
+# matching the org Renovate preset. It applies to transitive packages and
+# to lockfile regeneration too, so a compromised release cannot reach the
+# tree through a dependency of a dependency.
+minimumReleaseAge: 7200
+
+# Strict mode fails resolution outright on a package that is still inside
+# the cooldown. Without it pnpm records the offender as an exclusion in
+# this file and installs it anyway, which turns the gate into a log line.
+# The fix for a rejected version is always an older pin, never an entry
+# on an exclude list.
+minimumReleaseAgeStrict: true
+
+# A dependency whose build script pnpm has not been told to trust is a
+# hard failure rather than a skipped step. Any allowBuilds entry added
+# later carries a comment saying why that package needs to run code at
+# install time.
+strictDepBuilds: true
+
+# Node engine ranges are enforced, not advisory. This setting lives here
+# because pnpm 11 no longer reads the .npmrc form of it.
+engineStrict: true
+
+# Every command that runs through pnpm checks node_modules against the
+# lockfile first and stops when they disagree. A drifted tree that heals
+# itself mid-command hides the drift that CI is supposed to catch.
+verifyDepsBeforeRun: error
+
+# Resolution may raise the trust level recorded for a package but never
+# lower it, so a later install cannot quietly relax a decision an earlier
+# one made.
+trustPolicy: no-downgrade

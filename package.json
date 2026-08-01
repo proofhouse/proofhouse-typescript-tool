@@ -1,0 +1,24 @@
+{
+  "name": "proofhouse-typescript-tool",
+  "version": "0.0.0",
+  "description": "Reference CLI for the Proofhouse TypeScript tool reference repository",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "packageManager": "pnpm@11.17.0+sha512.zKPOozKtJUu4QUX5ZtGfSHlhUhA0b8kseaBH8joNezzKPDeS8AdrofGDHSd++88KkRmzGppg7Kf7PWIx8zHvcg==",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepublishOnly": "node -e \"process.exit(1)\""
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "tsc7": "npm:typescript@7.0.2",
+    "@types/node": "24.13.3",
+    "vitest": "4.1.10"
+  }
+}
