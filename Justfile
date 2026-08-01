@@ -280,10 +280,13 @@ fix-markdown *args:
 #
 # `lint-reuse` reads every tracked file rather than the TypeScript
 # alone and still belongs to this set, because adding a source file is
-# how a missing license declaration usually arrives.
+# how a missing license declaration usually arrives. The last two
+# entries join on the same reading. What the manifest says the sources
+# ship as belongs to whoever changed them, and so does the workflow
+# that builds them.
 
 # Run every TypeScript-flavored lint gate.
-lint-ts-all: lint-biome typecheck lint-eslint lint-deadcode lint-deadcode-production lint-dup-code lint-architecture lint-reuse
+lint-ts-all: lint-biome typecheck lint-eslint lint-deadcode lint-deadcode-production lint-dup-code lint-architecture lint-reuse lint-package lint-workflows
 
 # One name for every gate that reads the source tree, so a contributor
 # and a merge check reach the same set without listing it out. The
@@ -364,7 +367,8 @@ lint-eslint:
 # src/cli.ts as the shipping entry and adds the type-assertion files
 # under tests, which nothing imports by design. Its ignore list holds
 # the packages recipes here run by path rather than import: biome,
-# cspell, the clone detector, and the compiler that gates the sources.
+# cspell, the clone detector, the compiler that gates the sources, and
+# the pair that reads the packed tarball.
 
 # Report files, exports, and dependencies nothing reaches.
 lint-deadcode:
@@ -438,6 +442,34 @@ lint-architecture:
 # Verify SPDX compliance with reuse.
 lint-reuse:
     uvx --from 'reuse[charset-normalizer]==6.2.0' reuse --no-multiprocessing lint
+
+# The gates above read the tree. This one reads what leaves it. publint
+# packs the package the way a registry would and weighs the manifest
+# against the tarball: a bin entry naming a file the pack never
+# carried, an executable opening without a shebang, a files list that
+# left the entry point behind. attw takes a tarball of its own and asks
+# whether each file in it lands on type declarations under the module
+# resolution a consumer runs. Both need dist on disk, which is what the
+# dependency on `build` is for.
+#
+# attw discovers entry points from the exports map, and this package
+# declares a bin and no exports at all. Discovery comes back empty, and
+# the run then fails on a package root nothing was ever meant to import
+# from. The legacy flag is the case for a package without exports:
+# every packed file counts as an entry point, which is the reading npm
+# itself has of such a package. The sibling library reaches the same
+# place through its exports map and needs no flag.
+#
+# publint has a --pack flag too, and it names which package manager to
+# pack with rather than asking for a pack at all. Passing attw's
+# spelling of it to publint reads as the same instruction and is not
+# one. The profile drops the CommonJS resolution modes from the
+# verdict, since this package ships ESM alone.
+
+# Check the packed package shape and its type resolution.
+lint-package: build
+    node_modules/.bin/publint
+    node_modules/.bin/attw --pack . --profile esm-only --entrypoints-legacy
 
 # --strict promotes every warning to a failure, so a run here lands on
 # the same verdict a merge check would. Which rules apply is
@@ -518,6 +550,14 @@ lint-editorconfig:
 # workflow-shape rules yamllint can't see. Pinned Docker image;
 # Renovate bumps the version + digest via the shared Justfile
 # customManager.
+#
+# The recipe stood alone while it was the one gate here reading a
+# directory rather than the source tree. `lint-ts-all` carries it now.
+# A workflow edit arrives with the change it builds far more often
+# than on its own, and running it under the same name as the rest
+# spares a contributor from remembering which gate covers which
+# directory. On GitHub's side the shared caller workflow answers for
+# these files, which is why no hook does.
 
 # Lint GitHub Actions workflow files via actionlint.
 lint-workflows:
