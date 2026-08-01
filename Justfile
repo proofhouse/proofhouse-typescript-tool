@@ -39,6 +39,28 @@ tombi_version := "1.2.5"
 # Default recipe
 default: test
 
+# --- Setup ---
+
+# What a fresh clone runs before anything else here works. Safe to run
+# again at any point: Homebrew skips formulae already present, and the
+# style sync re-fetches against whatever .vale.ini names today. The
+# runtime is out of scope for it, since mise.toml pins Node and the
+# packageManager field in package.json routes pnpm.
+
+# Set up the development environment.
+setup: install-brew install-tools
+
+# Install Homebrew dependencies from Brewfile.
+install-brew:
+    brew bundle check || brew bundle install
+
+# Today that means Vale's synced style packages; grows as new
+# sync-style tools land.
+
+# Refresh non-brew tooling.
+install-tools:
+    vale sync
+
 # --- Build ---
 
 # Rewrite the generated module the version subcommand reads its commit

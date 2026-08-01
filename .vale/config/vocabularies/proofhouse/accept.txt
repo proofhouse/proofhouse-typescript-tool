@@ -152,3 +152,5 @@ yamllint
 TSDoc
 configs
 [Ee]ditorconfig
+Brewfile
+uvx?

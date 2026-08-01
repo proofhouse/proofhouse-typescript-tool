@@ -2,6 +2,7 @@ AGENTMSG
 autostash
 buildinfo
 buildmeta
+cocogitto
 cooldown
 EDITMSG
 goreleaser
