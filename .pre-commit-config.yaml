@@ -124,6 +124,18 @@ repos:
         types: [ts]
         pass_filenames: false
 
+      # Reachability is a whole-graph question, so the staged subset
+      # would leave the run guessing which files still import what.
+      # Only the everyday pass fires here. The production view repeats
+      # the same walk for a narrower verdict, and `lint-ts-all` and the
+      # merge check both carry it.
+      - id: knip
+        name: knip dead code check
+        entry: just lint-deadcode
+        language: system
+        types: [ts]
+        pass_filenames: false
+
       # The workspace file carries the resolution and supply-chain
       # settings, so an edit to it re-verifies the lockfile the same as
       # an edit to the manifest does.

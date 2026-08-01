@@ -164,3 +164,4 @@ vitest('s)?
 jiti
 pydocstyle
 [Pp]yrefly
+knip
