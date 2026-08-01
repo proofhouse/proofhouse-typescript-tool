@@ -160,3 +160,7 @@ packageManager
 npm
 [Pp]odman
 vitest('s)?
+[Ee]slint
+jiti
+pydocstyle
+[Pp]yrefly

@@ -24,7 +24,10 @@ const VERSION_OUTPUT_PARTS = 4;
 
 const root = fileURLToPath(new URL("../..", import.meta.url));
 
-test("the entry point runs as TypeScript under Node", () => {
+// `test` hands back a promise that settles once the case is done, and the
+// runner reports the result even when nobody reads that promise. Awaiting it
+// here keeps the module from finishing ahead of the case it registered.
+await test("the entry point runs as TypeScript under Node", () => {
   const result = spawnSync(process.execPath, ["src/cli.ts", "version"], {
     cwd: root,
     encoding: "utf8",
