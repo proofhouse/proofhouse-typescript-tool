@@ -69,6 +69,35 @@ run *args: stamp
     trap 'git restore src/generated/buildinfo.ts' EXIT
     node src/cli.ts "$@"
 
+# Prove that one commit packs to one tarball. The recipe clones the
+# committed tree twice, hands each clone the working copy of the
+# lockfile so both installs resolve the same versions, then installs,
+# builds, and packs in each and compares the two tarballs by digest.
+# Both clones sit on the same commit, so stamping puts identical values
+# in both. pnpm's packer normalizes archive metadata on its own and
+# reads nothing from SOURCE_DATE_EPOCH, which is why that variable
+# exists here for parity with the sibling repositories and is not
+# threaded into pack. What is left for a digest to disagree about is the
+# compiled output, so this also stands as the running check that
+# TypeScript 7 emits the same bytes every time it compiles the sources.
+[script]
+build-repro-check:
+    first=$(mktemp -d)
+    second=$(mktemp -d)
+    trap 'rm -rf "$first" "$second"' EXIT
+    for dir in "$first" "$second"; do
+        git clone --quiet --no-hardlinks . "$dir"
+        cp -f pnpm-lock.yaml "$dir/pnpm-lock.yaml"
+        (cd "$dir" && pnpm install --frozen-lockfile && just build && pnpm pack)
+    done
+    sum_first=$(shasum -a 256 < "$first"/*.tgz)
+    sum_second=$(shasum -a 256 < "$second"/*.tgz)
+    if [[ "$sum_first" != "$sum_second" ]]; then
+        echo "not reproducible: two packs of {{ commit }} differ" >&2
+        exit 1
+    fi
+    echo "reproducible: two packs of {{ commit }} share sha256 ${sum_first%% *}"
+
 # Drop build output and return the generated module to its committed state
 clean:
     rm -rf dist
