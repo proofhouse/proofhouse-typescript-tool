@@ -279,7 +279,7 @@ fix-markdown *args:
 # appends itself to this list. Nothing here but dependencies.
 
 # Run every TypeScript-flavored lint gate.
-lint-ts-all: lint-biome typecheck lint-eslint lint-deadcode lint-deadcode-production lint-dup-code
+lint-ts-all: lint-biome typecheck lint-eslint lint-deadcode lint-deadcode-production lint-dup-code lint-architecture
 
 # One name for every gate that reads the source tree, so a contributor
 # and a merge check reach the same set without listing it out. The
@@ -394,6 +394,27 @@ lint-deadcode-production:
 # Report token sequences duplicated across the sources and the suite.
 lint-dup-code:
     node_modules/.bin/jscpd --threshold 0 --min-tokens 50 src tests
+
+# Nothing so far has an opinion on which module may import which. The
+# gates before this one read a file, or a name inside one, and the
+# reachability question they answer stops at whether some caller
+# exists. depcruise builds the whole import graph and rules on its
+# shape: a cycle nobody can read an entry point out of, a module the
+# entry point never arrives at, a module sitting off the graph
+# entirely. import-linter draws the same contracts in the sibling
+# Python repositories, and .dependency-cruiser.cjs holds them here.
+#
+# The second line is there because a clean run and a run that saw
+# nothing look identical from outside. depcruise resolves this tree
+# through the older compiler it loads as a library, and the day that
+# pin becomes a lone TypeScript 7 the walk finds no modules and still
+# exits 0. Asking jq whether the count came back above zero turns a
+# gate gone quiet into a gate that failed.
+
+# Report import cycles, orphans, and modules the entry point never reaches.
+lint-architecture:
+    node_modules/.bin/depcruise src tests --config .dependency-cruiser.cjs
+    node_modules/.bin/depcruise src --config .dependency-cruiser.cjs -T json | jq -e '.summary.totalCruised > 0' > /dev/null
 
 # --strict promotes every warning to a failure, so a run here lands on
 # the same verdict a merge check would. Which rules apply is

@@ -167,3 +167,5 @@ pydocstyle
 knip
 jscpd('s)?
 pylint('s)?
+depcruise
+jq

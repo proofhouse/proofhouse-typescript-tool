@@ -147,6 +147,18 @@ repos:
         types: [ts]
         pass_filenames: false
 
+      # Which module may import which is a property of the graph, and
+      # the graph changes shape with every file staged or not. Handing
+      # over the staged subset would leave the cycle running through
+      # the file left out unreported. Both passes in the recipe fire,
+      # the contracts and the guard that the walk found anything.
+      - id: depcruise
+        name: dependency-cruiser architecture check
+        entry: just lint-architecture
+        language: system
+        types: [ts]
+        pass_filenames: false
+
       # The workspace file carries the resolution and supply-chain
       # settings, so an edit to it re-verifies the lockfile the same as
       # an edit to the manifest does.
