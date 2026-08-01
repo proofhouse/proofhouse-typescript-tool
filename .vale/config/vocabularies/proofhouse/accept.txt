@@ -159,3 +159,4 @@ packageManager
 [Cc]ooldown
 npm
 [Pp]odman
+vitest('s)?
