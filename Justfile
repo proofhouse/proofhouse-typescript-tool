@@ -277,9 +277,13 @@ fix-markdown *args:
 # through a TypeScript change means rerunning these gates alone rather
 # than the whole tree-wide text sweep. A later gate over TypeScript
 # appends itself to this list. Nothing here but dependencies.
+#
+# `lint-reuse` reads every tracked file rather than the TypeScript
+# alone and still belongs to this set, because adding a source file is
+# how a missing license declaration usually arrives.
 
 # Run every TypeScript-flavored lint gate.
-lint-ts-all: lint-biome typecheck lint-eslint lint-deadcode lint-deadcode-production lint-dup-code lint-architecture
+lint-ts-all: lint-biome typecheck lint-eslint lint-deadcode lint-deadcode-production lint-dup-code lint-architecture lint-reuse
 
 # One name for every gate that reads the source tree, so a contributor
 # and a merge check reach the same set without listing it out. The
@@ -415,6 +419,25 @@ lint-dup-code:
 lint-architecture:
     node_modules/.bin/depcruise src tests --config .dependency-cruiser.cjs
     node_modules/.bin/depcruise src --config .dependency-cruiser.cjs -T json | jq -e '.summary.totalCruised > 0' > /dev/null
+
+# Every gate up to here rules on what a file says. This one rules on
+# whether the file says who owns it. reuse walks the tracked tree and
+# fails unless each file names a copyright holder and a license, either
+# through the two-line header the TypeScript sources open with or
+# through a bulk annotation in REUSE.toml.
+#
+# The sibling Python repositories install reuse into their dev
+# dependency group. Nothing here declares Python dependencies, so uvx
+# resolves the pinned release into a cached environment instead, and
+# Renovate reads that pin off this line. The extra brings along the
+# encoding detector reuse falls back on for a file it cannot read as
+# UTF-8. The remaining flag skips reuse's per-file process pool, which
+# on a tree this size costs more to start than it saves and wants
+# semaphores a restricted environment can refuse.
+
+# Verify SPDX compliance with reuse.
+lint-reuse:
+    uvx --from 'reuse[charset-normalizer]==6.2.0' reuse --no-multiprocessing lint
 
 # --strict promotes every warning to a failure, so a run here lands on
 # the same verdict a merge check would. Which rules apply is
