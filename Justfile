@@ -124,7 +124,7 @@ typecheck:
 # gate that lands appends itself here; prose is the first of them.
 
 # Run every linter that operates on the source tree.
-lint: lint-prose
+lint: lint-prose lint-spelling
 
 # The glob keeps vale off files whose prose nobody here writes: the
 # LICENSE and the generated changelog, vale's own synced styles, the
@@ -138,6 +138,17 @@ lint: lint-prose
 # Lint prose in Markdown files and source comments via vale.
 lint-prose *args:
     vale --output=proofhouse-agent.tmpl --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/rules/*,.claude/worktrees/*,COMMIT_AGENTMSG,dist/*,node_modules/*,coverage/*,reports/*,.stryker-tmp/*}' {{ if args == "" { "." } else { args } }}
+
+# Words this project uses that a dictionary would not carry live in
+# .cspell-words.txt, and .cspell.jsonc says which files are worth
+# reading at all. The binary comes out of node_modules by path: the
+# gate weighs the tree against the version pinned in package.json,
+# whatever cspell a machine may have on PATH. COMMIT_AGENTMSG stays
+# out, so a message still being drafted cannot fail the tree.
+
+# Check spelling across the tree.
+lint-spelling *args:
+    node_modules/.bin/cspell --config .cspell.jsonc --no-summary --no-progress --no-must-find-files --exclude COMMIT_AGENTMSG {{ if args == "" { "." } else { args } }}
 
 # --- Dependencies ---
 

@@ -1,0 +1,32 @@
+{
+  "language": "en",
+  // cspell ignores unknown keys silently, so this name must be exact:
+  // without it, glob matching skips dotfiles and every dot-config in
+  // this repo (.vale.ini, .yamllint.yaml, ...) escapes the gate.
+  "enableGlobDot": true,
+  "ignorePaths": [
+    "**/*.d.ts",
+    "**/*.log",
+    ".claude/worktrees/**/*",
+    // Dotted paths become visible above, and that reaches the object
+    // store, the reflog and the sample hooks as well:
+    ".git/**/*",
+    ".stryker-tmp/**/*",
+    ".vale/**/*",
+    "coverage/**/*",
+    "dist/**/*",
+    "LICENSE",
+    "node_modules/**/*",
+    "pnpm-lock.yaml",
+    "reports/**/*",
+    "tmp/**/*"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "proofhouse",
+      "path": "./.cspell-words.txt",
+      "addWords": true
+    }
+  ],
+  "dictionaries": ["proofhouse", "typescript", "node"]
+}
