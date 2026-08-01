@@ -3,6 +3,7 @@ autostash
 buildinfo
 buildmeta
 cocogitto
+commitlint
 cooldown
 EDITMSG
 goreleaser
