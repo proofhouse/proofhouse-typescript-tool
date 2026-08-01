@@ -21,6 +21,9 @@ importers:
       cspell:
         specifier: 10.0.1
         version: 10.0.1
+      expect-type:
+        specifier: 1.4.0
+        version: 1.4.0
       tsc7:
         specifier: npm:typescript@7.0.2
         version: typescript@7.0.2

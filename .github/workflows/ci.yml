@@ -1,8 +1,9 @@
 ---
 # Main quality gate. Every pull request and every push to `main` runs
-# the whole lint set, the test suite across the runners and Node
-# releases this package supports, the lock-drift check, and the smoke
-# suite that reads the sources as raw TypeScript. Each of those is its
+# the whole lint set, the compiler over the sources and the tests, the
+# test suite across the runners and Node releases this package
+# supports, the lock-drift check, and the smoke suite that reads the
+# sources as raw TypeScript. Each of those is its
 # own job, so a flake in one costs a rerun of that one alone and the
 # status list names which gate turned the change away.
 #
@@ -109,6 +110,43 @@ jobs:
 
       - name: Lint
         run: just lint
+
+  # The lint job already reaches the compiler through `just lint`. A job of
+  # its own gives the type gate a name in the status list, so a compile error
+  # reads as one on the pull request instead of hiding inside a lint failure
+  # among a dozen other gates. The run costs under a second.
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@131c527df05799916f98d8c4b26eb225dbfc7845 # v0.4.0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24.18.1'
+          cache: pnpm
+
+      # The compiler comes out of the dependency tree under the tsc7 alias.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: just typecheck
 
   lock-check:
     name: lock-check

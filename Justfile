@@ -279,7 +279,7 @@ fix-markdown *args:
 # appends itself to this list. Nothing here but dependencies.
 
 # Run every TypeScript-flavored lint gate.
-lint-ts-all: lint-biome
+lint-ts-all: lint-biome typecheck
 
 # One name for every gate that reads the source tree, so a contributor
 # and a merge check reach the same set without listing it out. The
