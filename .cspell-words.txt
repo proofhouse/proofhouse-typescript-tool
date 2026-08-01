@@ -1,4 +1,5 @@
 AGENTMSG
+attw
 autostash
 buildinfo
 buildmeta
@@ -22,6 +23,7 @@ osxkeychain
 pipefail
 prek
 proofhouse
+publint
 pydocstyle
 pylint
 pypi

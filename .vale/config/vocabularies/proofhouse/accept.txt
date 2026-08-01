@@ -169,3 +169,5 @@ jscpd('s)?
 pylint('s)?
 depcruise
 jq
+publint
+attw('s)?
