@@ -149,7 +149,7 @@ fix-markdown *args:
 # gate that lands appends itself here; prose is the first of them.
 
 # Run every linter that operates on the source tree.
-lint: lint-prose lint-spelling lint-markdown lint-config
+lint: lint-prose lint-spelling lint-markdown lint-config lint-yaml
 
 # The glob keeps vale off files whose prose nobody here writes: the
 # LICENSE and the generated changelog, vale's own synced styles, the
@@ -191,6 +191,17 @@ lint-markdown *args:
 # Lint JSON, JS, and TS files via biome.
 lint-config *args:
     node_modules/.bin/biome check --files-ignore-unknown=true {{ if args == "" { "." } else { args } }}
+
+# --strict promotes every warning to a failure, so a run here lands on
+# the same verdict a merge check would. Which rules apply is
+# .yamllint.yaml's call, and it draws the walk's scope from .gitignore
+# plus .yamllintignore. The second file exists for what the first misses:
+# pnpm-lock.yaml is tracked, and its resolution lines run well past any
+# column limit worth setting.
+
+# Lint YAML files (configuration and workflow definitions).
+lint-yaml *args:
+    yamllint --strict {{ if args == "" { "." } else { args } }}
 
 # --- Dependencies ---
 
