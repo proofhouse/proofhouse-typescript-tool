@@ -159,6 +159,18 @@ repos:
         types: [ts]
         pass_filenames: false
 
+      # A header can go missing in any file the tree gains, not only in
+      # a TypeScript one, so this hook names no file filter at all. The
+      # gates above it each answer for one language and can afford to
+      # sit out a commit that touches nothing in it. Both stages fire,
+      # since a file added and pushed without a declaration is the case
+      # worth catching twice.
+      - id: reuse
+        name: reuse lint
+        entry: just lint-reuse
+        language: system
+        pass_filenames: false
+
       # The workspace file carries the resolution and supply-chain
       # settings, so an edit to it re-verifies the lockfile the same as
       # an edit to the manifest does.
