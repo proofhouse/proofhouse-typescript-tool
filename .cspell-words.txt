@@ -6,11 +6,13 @@ cooldown
 EDITMSG
 goreleaser
 hardlinks
+hardwrap
 mktemp
 pipefail
 prek
 proofhouse
 reflog
+rumdl
 tmpl
 Tricolon
 typer

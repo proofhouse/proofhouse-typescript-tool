@@ -11,6 +11,7 @@
     // Dotted paths become visible above, and that reaches the object
     // store, the reflog and the sample hooks as well:
     ".git/**/*",
+    ".rumdl_cache/**/*",
     ".stryker-tmp/**/*",
     ".vale/**/*",
     "coverage/**/*",

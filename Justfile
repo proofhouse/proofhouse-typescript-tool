@@ -117,6 +117,23 @@ test *args:
 typecheck:
     node node_modules/tsc7/bin/tsc -p tsconfig.json
 
+# --- Format ---
+
+# Rewrites in place. Pair with `fix-markdown` for semantic lint fixes.
+
+# Format Markdown files (whitespace, list markers, code fence styles).
+format-markdown *args:
+    rumdl fmt {{ if args == "" { "." } else { args } }}
+
+# --- Fix ---
+
+# Complement to `format-markdown` (which only rewrites whitespace and
+# ordering, not semantic lints).
+
+# Apply rumdl's auto-fixable rules to Markdown files.
+fix-markdown *args:
+    rumdl check --fix {{ if args == "" { "." } else { args } }}
+
 # --- Lint ---
 
 # One name for every gate that reads the source tree, so a contributor
@@ -124,7 +141,7 @@ typecheck:
 # gate that lands appends itself here; prose is the first of them.
 
 # Run every linter that operates on the source tree.
-lint: lint-prose lint-spelling
+lint: lint-prose lint-spelling lint-markdown
 
 # The glob keeps vale off files whose prose nobody here writes: the
 # LICENSE and the generated changelog, vale's own synced styles, the
@@ -149,6 +166,13 @@ lint-prose *args:
 # Check spelling across the tree.
 lint-spelling *args:
     node_modules/.bin/cspell --config .cspell.jsonc --no-summary --no-progress --no-must-find-files --exclude COMMIT_AGENTMSG {{ if args == "" { "." } else { args } }}
+
+# rumdl handles structural lints (heading style, list marker style,
+# code fence style); vale handles prose.
+
+# Lint Markdown files against the project's .rumdl.toml ruleset.
+lint-markdown *args:
+    rumdl check {{ if args == "" { "." } else { args } }}
 
 # --- Dependencies ---
 
