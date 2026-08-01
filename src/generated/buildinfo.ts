@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright Authors of Proofhouse
 
-// The stamp recipe rewrites this file during a build and puts this copy back
-// afterwards. What is committed here are the unstamped fallbacks, so a plain
+// The stamp recipe rewrites this file during a build and puts the committed
+// copy back afterwards. That copy carries the unstamped fallbacks, so a plain
 // source checkout typechecks and runs without a build ever having happened.
 
 /** Short git SHA the build came from, empty when nothing stamped it. */

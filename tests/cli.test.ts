@@ -15,9 +15,8 @@ interface Result {
   readonly error: CommanderError | undefined;
 }
 
-// Drive the program in process: exitOverride turns the exit paths into a
-// throw, and the output configuration collects what would reach the two
-// standard streams.
+// Drive the program in process. `exitOverride` turns the exit paths into a
+// throw, and the output configuration collects both streams.
 function run(args: readonly string[]): Result {
   let out = "";
   let err = "";
@@ -78,7 +77,7 @@ describe("the command surface", () => {
   it("answers a bare invocation with help", () => {
     const result = run([]);
     // Commander treats the missing subcommand as a usage error: help goes to
-    // the error stream and the exit code is 1, where the Python twin's typer
+    // the error stream and the exit code is 1, where the Python twin's `typer`
     // app reports 2. Each framework picks its own number here.
     expect(result.error?.exitCode).toBe(1);
     expect(result.err).toContain("Usage:");

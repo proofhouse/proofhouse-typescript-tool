@@ -8,9 +8,9 @@ import { get } from "./buildmeta.ts";
 /**
  * Build the command surface of the tool.
  *
- * The program is returned unparsed so tests can drive it in process. There is
- * deliberately no version flag: version is a subcommand here, matching the
- * other reference tools in the organization.
+ * Callers get the program before it parses anything, so tests can drive it in
+ * process. Version reporting sits in a subcommand rather than a flag here,
+ * matching the other reference tools in the organization.
  */
 export function makeProgram(): Command {
   const program = new Command();

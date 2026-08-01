@@ -43,8 +43,8 @@ stamp:
     // SPDX-License-Identifier: Apache-2.0
     // Copyright Authors of Proofhouse
 
-    // The stamp recipe rewrites this file during a build and puts this copy back
-    // afterwards. What is committed here are the unstamped fallbacks, so a plain
+    // The stamp recipe rewrites this file during a build and puts the committed
+    // copy back afterwards. That copy carries the unstamped fallbacks, so a plain
     // source checkout typechecks and runs without a build ever having happened.
 
     /** Short git SHA the build came from, empty when nothing stamped it. */
@@ -117,6 +117,28 @@ test *args:
 typecheck:
     node node_modules/tsc7/bin/tsc -p tsconfig.json
 
+# --- Lint ---
+
+# One name for every gate that reads the source tree, so a contributor
+# and a merge check reach the same set without listing it out. Each
+# gate that lands appends itself here; prose is the first of them.
+
+# Run every linter that operates on the source tree.
+lint: lint-prose
+
+# The glob keeps vale off files whose prose nobody here writes: the
+# LICENSE and the generated changelog, vale's own synced styles, the
+# scratch directory, the agent worktrees and the shared rules deployed
+# under .claude/, installed packages and compiled output, and the
+# coverage, report, and mutation scratch trees. COMMIT_AGENTMSG sits in
+# the list too, because .vale.ini reads that draft under the stricter
+# commit scope. Which of the remaining files get inspected, and under
+# which rules, is .vale.ini's call.
+
+# Lint prose in Markdown files and source comments via vale.
+lint-prose *args:
+    vale --output=proofhouse-agent.tmpl --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/rules/*,.claude/worktrees/*,COMMIT_AGENTMSG,dist/*,node_modules/*,coverage/*,reports/*,.stryker-tmp/*}' {{ if args == "" { "." } else { args } }}
+
 # --- Dependencies ---
 
 # Check that pnpm-lock.yaml still matches the specifiers in
@@ -129,6 +151,14 @@ lock-check:
     pnpm install --frozen-lockfile --lockfile-only
 
 # --- Utilities ---
+
+# The styles named in .vale.ini's Packages list are downloaded under
+# .vale/, which git does not track apart from the vocabulary. Run this
+# after cloning, and again whenever that list moves.
+
+# Sync Vale styles and dictionaries.
+vale-sync:
+    vale sync
 
 # Check that the two-compiler wiring is intact. typescript supplies the
 # JS API that typed lint tooling loads, and tsc7, an alias of

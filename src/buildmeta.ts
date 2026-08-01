@@ -7,7 +7,7 @@ import { COMMIT, DATE } from "./generated/buildinfo.ts";
 
 /** Build-time facts the tool reports about itself. */
 export interface BuildInfo {
-  /** Package version, taken from the manifest shipped alongside the code. */
+  /** Package version, read from the manifest that travels with the code. */
   readonly version: string;
   /** Short git SHA the build came from, empty when nothing stamped it. */
   readonly commit: string;
@@ -15,10 +15,10 @@ export interface BuildInfo {
   readonly date: string;
 }
 
-// The manifest is read at runtime instead of imported as JSON. A static import
-// would pull package.json under the build's rootDir and reshape dist around it.
-// The relative URL finds the manifest either way: one level above src/ in a
-// checkout, and one level above the emitted JS in a packed tarball.
+// A static import of package.json would pull it under the build's `rootDir` and
+// reshape dist around it. Reading the manifest at runtime avoids that. The
+// relative URL resolves the same from src/ in a checkout as from the emitted JS
+// in a packed tarball, one level up in each.
 function readVersion(): string {
   const text = readFileSync(new URL("../package.json", import.meta.url), "utf8");
   const manifest: unknown = JSON.parse(text);

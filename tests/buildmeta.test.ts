@@ -23,8 +23,8 @@ function manifestVersion(): string {
   return manifest.version;
 }
 
-// Every assertion holds whether or not the checkout has been stamped, so the
-// suite reports the same result from a bare clone and from a built tree.
+// Every assertion holds on a stamped checkout and an unstamped one alike, so
+// the suite reports the same result from a bare clone and from a built tree.
 describe("get", () => {
   it("reports the version the package manifest declares", () => {
     expect(get().version).toBe(manifestVersion());
