@@ -136,6 +136,17 @@ repos:
         types: [ts]
         pass_filenames: false
 
+      # A clone is a fact about two files at once, and the staged set
+      # rarely holds both of them. The recipe reads the sources and the
+      # suite in full for that reason, which on this tree takes about
+      # as long as listing the directories does.
+      - id: jscpd
+        name: jscpd duplicate code check
+        entry: just lint-dup-code
+        language: system
+        types: [ts]
+        pass_filenames: false
+
       # The workspace file carries the resolution and supply-chain
       # settings, so an edit to it re-verifies the lockfile the same as
       # an edit to the manifest does.

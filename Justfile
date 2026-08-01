@@ -279,7 +279,7 @@ fix-markdown *args:
 # appends itself to this list. Nothing here but dependencies.
 
 # Run every TypeScript-flavored lint gate.
-lint-ts-all: lint-biome typecheck lint-eslint lint-deadcode lint-deadcode-production
+lint-ts-all: lint-biome typecheck lint-eslint lint-deadcode lint-deadcode-production lint-dup-code
 
 # One name for every gate that reads the source tree, so a contributor
 # and a merge check reach the same set without listing it out. The
@@ -359,8 +359,8 @@ lint-eslint:
 # knip.json carries the two settings this tree needs. It names
 # src/cli.ts as the shipping entry and adds the type-assertion files
 # under tests, which nothing imports by design. Its ignore list holds
-# the three packages recipes here run by path rather than import:
-# biome, cspell, and the compiler that gates the sources.
+# the packages recipes here run by path rather than import: biome,
+# cspell, the clone detector, and the compiler that gates the sources.
 
 # Report files, exports, and dependencies nothing reaches.
 lint-deadcode:
@@ -375,6 +375,25 @@ lint-deadcode:
 # Report dead code across the packaged surface alone.
 lint-deadcode-production:
     node_modules/.bin/knip --production
+
+# Every gate above reads a name where it was written or follows an
+# import to where it leads. A block of logic pasted into a second file
+# breaks neither rule, and each copy then has to be found again the
+# next time the logic changes. jscpd hashes windows of tokens across
+# the tree and reports the pairs that match. pylint's similarities
+# checker holds this slot in the sibling Python repositories.
+#
+# No config file: the flags read better beside the reason for them.
+# --threshold names the share of duplicated lines the run tolerates,
+# and 0 turns a single clone into a failure. --min-tokens is where a
+# clone starts counting. 50 is jscpd's own default, written out so a
+# release that moves it has to move this line too. Scope arrives as
+# arguments because a clone spanning the sources and the suite is
+# worth the same look as one inside either.
+
+# Report token sequences duplicated across the sources and the suite.
+lint-dup-code:
+    node_modules/.bin/jscpd --threshold 0 --min-tokens 50 src tests
 
 # --strict promotes every warning to a failure, so a run here lands on
 # the same verdict a merge check would. Which rules apply is
