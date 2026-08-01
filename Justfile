@@ -125,6 +125,14 @@ typecheck:
 format-markdown *args:
     rumdl fmt {{ if args == "" { "." } else { args } }}
 
+# Applies the layout biome.json settles: spaces, 100 columns, double quotes,
+# imports in biome's order. Everything else biome has to say about a file
+# comes from `lint-config`, which rewrites nothing.
+
+# Format JSON, JS, and TS files in place via biome's formatter.
+format-config *args:
+    node_modules/.bin/biome format --write {{ if args == "" { "." } else { args } }}
+
 # --- Fix ---
 
 # Complement to `format-markdown` (which only rewrites whitespace and
@@ -141,7 +149,7 @@ fix-markdown *args:
 # gate that lands appends itself here; prose is the first of them.
 
 # Run every linter that operates on the source tree.
-lint: lint-prose lint-spelling lint-markdown
+lint: lint-prose lint-spelling lint-markdown lint-config
 
 # The glob keeps vale off files whose prose nobody here writes: the
 # LICENSE and the generated changelog, vale's own synced styles, the
@@ -173,6 +181,16 @@ lint-spelling *args:
 # Lint Markdown files against the project's .rumdl.toml ruleset.
 lint-markdown *args:
     rumdl check {{ if args == "" { "." } else { args } }}
+
+# Biome reads the TypeScript sources and the JSON that configures them,
+# reporting layout drift alongside its lint rules. The whole preset is on,
+# so one pass covers correctness, style, complexity, and import order.
+# Naming the executable under node_modules holds the gate to the pinned
+# copy rather than to whatever a machine happens to have installed.
+
+# Lint JSON, JS, and TS files via biome.
+lint-config *args:
+    node_modules/.bin/biome check --files-ignore-unknown=true {{ if args == "" { "." } else { args } }}
 
 # --- Dependencies ---
 

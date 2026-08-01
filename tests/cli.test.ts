@@ -2,12 +2,24 @@
 // Copyright Authors of Proofhouse
 
 import { spawnSync } from "node:child_process";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { CommanderError } from "commander";
 import { beforeAll, describe, expect, it } from "vitest";
-
 import { get } from "../src/buildmeta.ts";
 import { makeProgram } from "../src/program.ts";
+
+const NAME_LINE = /^proofhouse-typescript-tool /;
+const COMMIT_LINE = /^commit: /;
+const DATE_LINE = /^date: {3}/;
+
+// The version output ends in a newline, so splitting it leaves a fourth,
+// empty part.
+const VERSION_OUTPUT_PARTS = 4;
+
+// Compiling the whole program takes longer than the default timeout `vitest`
+// allows a hook, especially on the first run in a fresh checkout.
+const BUILD_TIMEOUT_MS = 60_000;
 
 interface Result {
   readonly out: string;
@@ -59,11 +71,10 @@ describe("the version subcommand", () => {
 
   it("labels the lines the way the sibling tools do", () => {
     const lines = run(["version"]).out.split("\n");
-    // The output ends in a newline, so the split leaves a fourth, empty part.
-    expect(lines).toHaveLength(4);
-    expect(lines[0]).toMatch(/^proofhouse-typescript-tool /);
-    expect(lines[1]).toMatch(/^commit: /);
-    expect(lines[2]).toMatch(/^date: {3}/);
+    expect(lines).toHaveLength(VERSION_OUTPUT_PARTS);
+    expect(lines[0]).toMatch(NAME_LINE);
+    expect(lines[1]).toMatch(COMMIT_LINE);
+    expect(lines[2]).toMatch(DATE_LINE);
   });
 });
 
@@ -100,9 +111,12 @@ describe("the built entry point", () => {
       ["node_modules/tsc7/bin/tsc", "-p", "tsconfig.build.json"],
       { cwd: fileURLToPath(root), encoding: "utf8" },
     );
-    expect(build.stdout + build.stderr).toBe("");
-    expect(build.status).toBe(0);
-  }, 60_000);
+    // A hook reports a failure by throwing. An assertion here would be
+    // recorded against whichever test happened to run next.
+    if (build.status !== 0 || build.stdout !== "" || build.stderr !== "") {
+      throw new Error(`compiling dist did not succeed quietly: ${build.stdout}${build.stderr}`);
+    }
+  }, BUILD_TIMEOUT_MS);
 
   it("runs from the emitted JavaScript", () => {
     // The compiler rewrites the .ts import specifiers on the way out, so this

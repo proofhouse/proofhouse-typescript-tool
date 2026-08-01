@@ -5,16 +5,6 @@ import { readFileSync } from "node:fs";
 
 import { COMMIT, DATE } from "./generated/buildinfo.ts";
 
-/** Build-time facts the tool reports about itself. */
-export interface BuildInfo {
-  /** Package version, read from the manifest that travels with the code. */
-  readonly version: string;
-  /** Short git SHA the build came from, empty when nothing stamped it. */
-  readonly commit: string;
-  /** Calendar date of the build, "unknown" when nothing stamped it. */
-  readonly date: string;
-}
-
 // A static import of package.json would pull it under the build's `rootDir` and
 // reshape dist around it. Reading the manifest at runtime avoids that. The
 // relative URL resolves the same from src/ in a checkout as from the emitted JS
@@ -31,6 +21,16 @@ function readVersion(): string {
     throw new TypeError("package.json carries no version string");
   }
   return manifest.version;
+}
+
+/** Build-time facts the tool reports about itself. */
+export interface BuildInfo {
+  /** Package version, read from the manifest that travels with the code. */
+  readonly version: string;
+  /** Short git SHA the build came from, empty when nothing stamped it. */
+  readonly commit: string;
+  /** Calendar date of the build, "unknown" when nothing stamped it. */
+  readonly date: string;
 }
 
 /** Return the build metadata of the running tool. */

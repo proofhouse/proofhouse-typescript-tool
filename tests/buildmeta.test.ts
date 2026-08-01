@@ -23,6 +23,9 @@ function manifestVersion(): string {
   return manifest.version;
 }
 
+const EMPTY_OR_SHORT_SHA = /^(?:|[0-9a-f]{7})$/;
+const UNKNOWN_OR_YEAR = /^(?:unknown$|\d{4})/;
+
 // Every assertion holds on a stamped checkout and an unstamped one alike, so
 // the suite reports the same result from a bare clone and from a built tree.
 describe("get", () => {
@@ -31,11 +34,11 @@ describe("get", () => {
   });
 
   it("reports either no commit or a seven-character short SHA", () => {
-    expect(get().commit).toMatch(/^(?:|[0-9a-f]{7})$/);
+    expect(get().commit).toMatch(EMPTY_OR_SHORT_SHA);
   });
 
   it("reports either an unknown date or one opening with a year", () => {
-    expect(get().date).toMatch(/^(?:unknown$|\d{4})/);
+    expect(get().date).toMatch(UNKNOWN_OR_YEAR);
   });
 });
 

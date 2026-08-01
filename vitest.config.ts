@@ -9,4 +9,5 @@ const config: ViteUserConfig = defineConfig({
   test: { include: ["tests/**/*.test.ts"] },
 });
 
+// biome-ignore lint/style/noDefaultExport: `vitest` reads a config module's default export.
 export default config;
