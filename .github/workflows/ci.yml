@@ -1,0 +1,224 @@
+---
+# Main quality gate. Every pull request and every push to `main` runs
+# the whole lint set, the test suite across the runners and Node
+# releases this package supports, the lock-drift check, and the smoke
+# suite that reads the sources as raw TypeScript. Each of those is its
+# own job, so a flake in one costs a rerun of that one alone and the
+# status list names which gate turned the change away.
+#
+# The lint job runs `just lint` rather than the source gates alone. The
+# text-quality checks reached a contributor only through the pre-commit
+# hooks until now, and `git commit --no-verify` walks straight past
+# those. Their binaries come from three places: vale and tombi from the
+# pinned composites in proofhouse/github-actions, rumdl, yamllint, and
+# editorconfig-checker from the Brewfile, biome and cspell from the
+# lockfile.
+#
+# Every job installs `just` from a SHA-pinned casey/just release
+# tarball and then calls the matching `just <recipe>`, which keeps the
+# Justfile the single answer to what any one gate runs.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@131c527df05799916f98d8c4b26eb225dbfc7845 # v0.4.0
+
+      # The ubuntu-24.04 image ships Homebrew but leaves its prefix off
+      # the PATH, so expose the bin and sbin directories before any brew
+      # invocation. It goes ahead of the two composites below, each of
+      # which prepends its own directory and so lands in front of this
+      # one.
+      - name: Put Homebrew on the PATH
+        run: echo "/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin" >> "$GITHUB_PATH"
+
+      # vale and tombi arrive from pinned release archives rather than
+      # from the Brewfile, verified against upstream checksums and a
+      # digest recorded in the action. Both gates are strict enough that
+      # an upstream release moves findings on its own, so the version
+      # each one runs belongs under review like every other pin. The
+      # composites take no version input here: their defaults are the
+      # organization pins.
+      - name: Set up vale
+        uses: proofhouse/github-actions/.github/actions/setup-vale@131c527df05799916f98d8c4b26eb225dbfc7845 # v0.4.0
+
+      - name: Set up tombi
+        uses: proofhouse/github-actions/.github/actions/setup-tombi@131c527df05799916f98d8c4b26eb225dbfc7845 # v0.4.0
+
+      # The image pins an older Homebrew and sets HOMEBREW_NO_AUTO_UPDATE,
+      # but `brew bundle` reads formula metadata from the JSON API, which
+      # serves current definitions. ca-certificates now declares a `run`
+      # install step that the pinned Homebrew cannot parse, failing every
+      # formula that depends on it. Update Homebrew itself first.
+      - name: Update Homebrew
+        run: brew update
+
+      # Covers the gates whose tools sit in neither the lockfile nor a
+      # composite: rumdl, yamllint, and editorconfig-checker.
+      - name: Install Homebrew dependencies
+        run: brew bundle install
+
+      # No version input: the action reads the packageManager field, so
+      # the pinned pnpm follows package.json. It has to precede the Node
+      # setup, whose pnpm cache asks the binary where the store lives.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24.18.1'
+          cache: pnpm
+
+      # biome and cspell run out of node_modules, so the lint job needs
+      # the dependency tree as much as the test job does.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # vale resolves its styles from .vale/, which `vale sync`
+      # populates from the Packages list in .vale.ini. Without this
+      # lint-prose fails on a missing style rather than on prose.
+      - name: Sync Vale styles
+        run: just install-tools
+
+      - name: Lint
+        run: just lint
+
+  lock-check:
+    name: lock-check
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@131c527df05799916f98d8c4b26eb225dbfc7845 # v0.4.0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24.18.1'
+          cache: pnpm
+
+      # The recipe resolves against the manifest and stops there, so it
+      # needs no install ahead of it.
+      - name: Check lock drift
+        run: just lock-check
+
+  test:
+    name: "test (${{ matrix.os }}, node ${{ matrix.node }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15
+          - windows-2025
+        node:
+          - '22.23.2'
+          - '24.18.1'
+          - '26.5.1'
+    steps:
+      - name: Harden the runner
+        if: runner.os == 'Linux'
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@131c527df05799916f98d8c4b26eb225dbfc7845 # v0.4.0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up Node ${{ matrix.node }}
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: just test
+
+  erasable:
+    name: erasable
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@131c527df05799916f98d8c4b26eb225dbfc7845 # v0.4.0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '26.5.1'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The smoke suite runs on the runtime alone, with no vitest and no
+      # transform in front of it, so it reaches its first assertion only
+      # if Node stripped the types off the entry point and everything it
+      # imports. Under vitest the same files would compile first, and a
+      # construct the runtime cannot erase would slip by unremarked.
+      - name: Run the erasable suite
+        run: just test-erasable

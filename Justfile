@@ -143,6 +143,17 @@ clean:
 test *args:
     node_modules/.bin/vitest run "$@"
 
+# A second, much smaller suite that runs on the runtime alone: no vitest,
+# no transform, nothing between the sources and Node. What it proves is
+# that the tree is erasable syntax the whole way down, since a stray
+# enum or parameter property would stop the run before any assertion.
+# vitest excludes this directory for that reason. Node globs the pattern
+# itself, so it stays quoted rather than handed to the shell.
+
+# Run the smoke suite as raw TypeScript under Node's type stripping.
+test-erasable:
+    node --test "tests/erasable/**/*.test.ts"
+
 # Typecheck the sources and the tests. tsc7 is named by path because
 # both compilers in devDependencies ship a tsc binary and only one of
 # them wins the .bin link, which would leave install order deciding

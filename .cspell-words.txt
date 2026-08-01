@@ -9,7 +9,9 @@ EDITMSG
 goreleaser
 hardlinks
 hardwrap
+linuxbrew
 lockfiles
+matrixed
 mktemp
 pipefail
 prek
