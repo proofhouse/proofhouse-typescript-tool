@@ -227,10 +227,10 @@ format-markdown *args:
 
 # Applies the layout biome.json settles: spaces, 100 columns, double quotes,
 # imports in biome's order. Everything else biome has to say about a file
-# comes from `lint-config`, which rewrites nothing.
+# comes from `lint-biome`, which rewrites nothing.
 
 # Format JSON, JS, and TS files in place via biome's formatter.
-format-config *args:
+format *args:
     node_modules/.bin/biome format --write {{ if args == "" { "." } else { args } }}
 
 # The in-place half of what `lint-toml` only reports on. Whitespace and
@@ -244,8 +244,8 @@ format-toml:
 
 # The rewriting half of `lint-just`, which reports and stops there. A
 # gate that reformatted the file underneath the contributor would hide
-# the edit it made, so the two stay apart, the way `format-config` and
-# `lint-config` do. `just --fmt` is an unstable feature still, and both
+# the edit it made, so the two stay apart, the way `format` and
+# `lint-biome` do. `just --fmt` is an unstable feature still, and both
 # recipes pass the flag rather than lean on the `set unstable` at the
 # top of this file, so neither stops working if that setting goes.
 
@@ -254,6 +254,15 @@ format-just:
     just --fmt --unstable
 
 # --- Fix ---
+
+# biome settles lint findings and layout in the same pass, so unlike the
+# ruff pairing the sibling repositories run there is no formatter call to
+# follow this one with. Only the fixes biome considers safe get applied.
+# Anything else it finds stays for a human to answer.
+
+# Fix biome lint findings and reformat what they touch.
+fix *args:
+    node_modules/.bin/biome check --write --files-ignore-unknown=true {{ if args == "" { "." } else { args } }}
 
 # Complement to `format-markdown` (which only rewrites whitespace and
 # ordering, not semantic lints).
@@ -264,12 +273,21 @@ fix-markdown *args:
 
 # --- Lint ---
 
+# The source-language slice of `lint` below, held apart so that working
+# through a TypeScript change means rerunning these gates alone rather
+# than the whole tree-wide text sweep. A later gate over TypeScript
+# appends itself to this list. Nothing here but dependencies.
+
+# Run every TypeScript-flavored lint gate.
+lint-ts-all: lint-biome
+
 # One name for every gate that reads the source tree, so a contributor
-# and a merge check reach the same set without listing it out. Each
-# gate that lands appends itself here; prose is the first of them.
+# and a merge check reach the same set without listing it out. The
+# TypeScript gates arrive as a group at the head; the text and config
+# gates that follow read the tree whatever language wrote it.
 
 # Run every linter that operates on the source tree.
-lint: lint-prose lint-spelling lint-markdown lint-config lint-yaml lint-toml lint-just lint-editorconfig
+lint: lint-ts-all lint-prose lint-spelling lint-markdown lint-yaml lint-toml lint-just lint-editorconfig
 
 # The glob keeps vale off files whose prose nobody here writes: the
 # LICENSE and the generated changelog, vale's own synced styles, the
@@ -307,10 +325,14 @@ lint-markdown *args:
 # so one pass covers correctness, style, complexity, and import order.
 # Naming the executable under node_modules holds the gate to the pinned
 # copy rather than to whatever a machine happens to have installed.
+# --error-on-warnings settles a warning the same way `lint-yaml` and
+# `lint-toml` settle theirs. Several rules in the preset land at warning
+# severity by default (useConst among them), and without the flag biome
+# prints those findings and still exits 0.
 
 # Lint JSON, JS, and TS files via biome.
-lint-config *args:
-    node_modules/.bin/biome check --files-ignore-unknown=true {{ if args == "" { "." } else { args } }}
+lint-biome *args:
+    node_modules/.bin/biome check --error-on-warnings --files-ignore-unknown=true {{ if args == "" { "." } else { args } }}
 
 # --strict promotes every warning to a failure, so a run here lands on
 # the same verdict a merge check would. Which rules apply is
