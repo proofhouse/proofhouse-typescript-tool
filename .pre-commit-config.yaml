@@ -109,6 +109,21 @@ repos:
         types: [ts]
         pass_filenames: false
 
+      # The sibling Python repositories spend two hooks on this stage,
+      # one for ruff and one for pyrefly, because each checker answers
+      # for its own family of findings. biome and the compiler hold
+      # those slots here and the typed rules are the third. Filenames
+      # stay out of the invocation for the reason the compiler's hook
+      # gives: the parser service builds the whole program whatever it
+      # is handed, so narrowing the run to the staged files would cost
+      # what a full pass costs and see less of the tree.
+      - id: eslint
+        name: eslint check
+        entry: just lint-eslint
+        language: system
+        types: [ts]
+        pass_filenames: false
+
       # The workspace file carries the resolution and supply-chain
       # settings, so an edit to it re-verifies the lockfile the same as
       # an edit to the manifest does.

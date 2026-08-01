@@ -7,6 +7,7 @@ commitlint
 cooldown
 EDITMSG
 goreleaser
+jiti
 hardlinks
 hardwrap
 linuxbrew
@@ -18,8 +19,10 @@ osxkeychain
 pipefail
 prek
 proofhouse
+pydocstyle
 pypi
 pyproject
+pyrefly
 reflog
 rhysd
 rumdl
@@ -28,6 +31,7 @@ tbhb
 tmpl
 tombi
 Tricolon
+tsdoc
 typer
 venv
 vitest

@@ -33,7 +33,11 @@ export interface BuildInfo {
   readonly date: string;
 }
 
-/** Return the build metadata of the running tool. */
+/**
+ * Report the build metadata of the running tool.
+ *
+ * @returns The manifest version alongside whatever the build stamped in.
+ */
 export function get(): BuildInfo {
   return { version: readVersion(), commit: COMMIT, date: DATE };
 }

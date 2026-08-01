@@ -11,6 +11,8 @@ import { get } from "./buildmeta.ts";
  * Callers get the program before it parses anything, so tests can drive it in
  * process. Version reporting sits in a subcommand rather than a flag here,
  * matching the other reference tools in the organization.
+ *
+ * @returns A program with its commands registered and no argument list read.
  */
 export function makeProgram(): Command {
   const program = new Command();
