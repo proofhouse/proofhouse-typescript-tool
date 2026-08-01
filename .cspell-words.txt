@@ -18,6 +18,7 @@ osxkeychain
 pipefail
 prek
 proofhouse
+pypi
 pyproject
 reflog
 rhysd

@@ -1,0 +1,81 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  // This repo's Renovate config is mostly shared org policy, pulled in via
+  // the extends preset in proofhouse/github-actions:
+  //
+  //   - renovate-config.json5 via extends — the repository-level rules plus
+  //     the Justfile and Vale custom managers shared by every repo.
+  //
+  // Renovate's npm manager needs no per-repo configuration to read this
+  // tree: it already parses the exact pins in package.json, the npm:
+  // alias, engines, and the packageManager field, and it refreshes
+  // pnpm-lock.yaml as the update artifact. What stays inline below is
+  // policy rather than plumbing — version bounds this repo has reasons
+  // for, and one grouping the native managers cannot infer.
+  //
+  // The global-only identity, rate limits, and requireConfig options are
+  // inlined here rather than pulled in via globalExtends: Renovate resolves
+  // globalExtends presets before it registers GITHUB_COM_TOKEN with its
+  // host-rules registry, so that preset fetch is always anonymous and
+  // intermittently trips GitHub's per-IP anonymous rate limit on shared
+  // runners (config-presets-invalid). extends is resolved later, at repo
+  // scope with token auth, so it is unaffected.
+  requireConfig: "ignored",
+  username: "proofhouse-renovate[bot]",
+  gitAuthor: "proofhouse-renovate[bot] <289255489+proofhouse-renovate[bot]@users.noreply.github.com>",
+  prConcurrentLimit: 0,
+  prHourlyLimit: 0,
+
+  extends: [
+    // The .json5 suffix is required. Renovate's preset resolver keeps a
+    // custom filename verbatim only when it already ends in .json, .json5,
+    // or .jsonc; otherwise it appends .json and the lookup misses.
+    "github>proofhouse/github-actions//.github/renovate-config.json5",
+  ],
+
+  // Appended to the preset's own rules — packageRules and customManagers
+  // are mergeable arrays, so nothing shared is lost by naming them here.
+  packageRules: [
+    {
+      // typescript stays 6.x (JS API for typescript-eslint / stryker
+      // typescript-checker / dependency-cruiser) until TS 7.1 ships the
+      // stable API and typescript-eslint supports it (typescript-eslint
+      // #10940). TS7 itself is tracked via the tsc7 npm alias, which
+      // Renovate's npm extractor parses.
+      matchManagers: ["npm"],
+      matchDepNames: ["typescript"],
+      allowedVersions: "<7.0.0",
+    },
+    {
+      // Hold Node type stubs to the dev-runtime major (mise pins node 24;
+      // npm latest tracks Node 26). Bump this bound in the same commit
+      // that bumps the mise node major. DefinitelyTyped back-publishes
+      // the 24 line, so in-line updates keep flowing.
+      matchPackageNames: ["@types/node"],
+      allowedVersions: "<25.0.0",
+    },
+    {
+      // packageManager (npm manager) + mise.toml [tools] (mise manager)
+      // both pin pnpm — group so one PR updates both files atomically.
+      // The Justfile check-tool-pins recipe bites on residual drift.
+      matchDepNames: ["pnpm"],
+      groupName: "pnpm",
+    },
+  ],
+
+  customManagers: [
+    {
+      // uvx-pinned Python tools in the Justfile have no native manager.
+      // Nothing matches this pattern yet; it is in place for the first
+      // such pin so the tool arrives already tracked.
+      customType: "regex",
+      managerFilePatterns: ["/^Justfile$/"],
+      matchStrings: ["--from '(?<depName>[a-z-]+)(\\[[a-z-,]+\\])?==(?<currentValue>[0-9.]+)'"],
+      datasourceTemplate: "pypi",
+    },
+  ],
+
+  // Single-repo scope. Global-only and differs per repo, so it stays inline.
+  repositories: ["proofhouse/proofhouse-typescript-tool"],
+}
