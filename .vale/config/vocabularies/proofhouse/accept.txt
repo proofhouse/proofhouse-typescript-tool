@@ -165,3 +165,5 @@ jiti
 pydocstyle
 [Pp]yrefly
 knip
+jscpd('s)?
+pylint('s)?
