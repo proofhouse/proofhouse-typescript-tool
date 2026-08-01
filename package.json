@@ -9,6 +9,9 @@
     "node": ">=22.18.0"
   },
   "packageManager": "pnpm@11.17.0+sha512.zKPOozKtJUu4QUX5ZtGfSHlhUhA0b8kseaBH8joNezzKPDeS8AdrofGDHSd++88KkRmzGppg7Kf7PWIx8zHvcg==",
+  "bin": {
+    "proofhouse-typescript-tool": "./dist/cli.js"
+  },
   "files": [
     "dist"
   ],
@@ -16,9 +19,12 @@
     "prepublishOnly": "node -e \"process.exit(1)\""
   },
   "devDependencies": {
-    "typescript": "6.0.3",
-    "tsc7": "npm:typescript@7.0.2",
     "@types/node": "24.13.3",
+    "tsc7": "npm:typescript@7.0.2",
+    "typescript": "6.0.3",
     "vitest": "4.1.10"
+  },
+  "dependencies": {
+    "commander": "15.0.0"
   }
 }
