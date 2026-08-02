@@ -20,6 +20,25 @@ const config: ViteUserConfig = defineConfig({
     // behind a draw prints beside every summary, a passing one included, and
     // `sequence.seed` is where that number goes to bring an order back.
     sequence: { shuffle: true },
+    coverage: {
+      provider: "v8",
+      // Version 4 counts only the modules a run happened to load, so a source
+      // file no test ever imports would sit outside the score rather than at
+      // the bottom of it. Naming the tree here holds every file in the
+      // denominator even when nothing reached it.
+      include: ["src/**"],
+      exclude: ["**/*.d.ts"],
+      reporter: ["text", "lcov"],
+      // Each file answers for itself. An average across the tree would let a
+      // well-covered module carry one with no tests behind it.
+      thresholds: {
+        branches: 100,
+        functions: 100,
+        lines: 100,
+        statements: 100,
+        perFile: true,
+      },
+    },
   },
 });
 

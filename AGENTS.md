@@ -14,6 +14,14 @@ Draft every commit message in `COMMIT_AGENTMSG` at the repo root before you run 
 
 The prek commit-msg hook on `.git/COMMIT_EDITMSG` stays the real gate. `COMMIT_AGENTMSG` and its recipe only preview that gate, so a clean recipe run predicts a clean commit but never replaces the hook.
 
+## Coverage hints
+
+Every line, branch, function, and statement of `src` sits under the floor, weighed per file. When the report calls a branch uncovered, a test is missing, and writing that test is the answer. Reach for a `v8 ignore` hint only where a line can't run under a test at all. Its shape never varies: `/* v8 ignore <kind> -- @preserve: <reason> */`. Dropping the `@preserve` marker lets the transform strip the comment before the provider ever sees it, and whoever reviews the change reads the reason that follows the colon.
+
+Watch the syntax on two points. `v8 ignore next 3` looks like it names a count and doesn't: the provider skips one line and leaves the other two scored, so the gate stays green over a hole. A span of lines wants `v8 ignore start` and `v8 ignore stop` around it instead. Taking one arm of a conditional out of the denominator also wants the hint inside that arm, since a hint sitting over the `if` speaks to the statement instead of the branch it opens.
+
+Reviewers reject a bare hint with no reason, the same way they reject an undocumented lint suppression. `src/cli.ts` carries the one file-level hint here and states its reason inline.
+
 ## Prose lint output
 
 The toolchain already defaults to the agent template. Both `just lint-prose` and the prek vale hook pass `--output=proofhouse-agent.tmpl`, so add the flag yourself only when invoking vale directly on specific paths. The template, synced from the proofhouse style package, prints one self-contained line per finding (location, severity, rule, the exact matched text, and the replacement parameter when the rule defines one) plus a totals line, so you can apply fixes without re-reading context through separate commands. Empty output means a clean run, and the exit code carries the result.

@@ -2,10 +2,19 @@
 // Copyright Authors of Proofhouse
 
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { get } from "../src/buildmeta.ts";
 import { COMMIT, DATE } from "../src/generated/buildinfo.ts";
+
+// A checkout always carries a well-formed manifest, so the guard in the source
+// never sees anything worth rejecting here. Standing in front of the reader is
+// what lets a case hand it something else. The module below arrives through a
+// mock that forwards to the real reader until a case says otherwise.
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs")>();
+  return { ...actual, readFileSync: vi.fn(actual.readFileSync) };
+});
 
 // Read the manifest here too, rather than through the code under test, so the
 // expectation has its own path to the value. The narrowing the source performs
@@ -33,6 +42,23 @@ describe("get", () => {
 
   it("reports either an unknown date or one opening with a year", () => {
     expect(get().date).toMatch(UNKNOWN_OR_YEAR);
+  });
+});
+
+// Four texts, four clauses of the guard. A bare number never reaches the shape
+// checks. `null` slips past `typeof` and stops at the equality test beside it.
+// The empty object has no version key. The last one has a version of the wrong
+// type.
+const REJECTED_MANIFESTS = ["7", "null", "{}", '{"version": 7}'];
+
+describe("get on an unusable manifest", () => {
+  afterEach(() => {
+    vi.mocked(readFileSync).mockReset();
+  });
+
+  it.each(REJECTED_MANIFESTS)("refuses to report a version from %s", (text) => {
+    vi.mocked(readFileSync).mockReturnValueOnce(text);
+    expect(() => get()).toThrow(TypeError);
   });
 });
 
