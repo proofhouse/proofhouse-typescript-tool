@@ -10,9 +10,9 @@ deadcode
 depcruise
 EDITMSG
 goreleaser
-jiti
 hardlinks
 hardwrap
+jiti
 knip
 linuxbrew
 lockfiles
