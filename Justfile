@@ -187,9 +187,9 @@ build-repro-check:
     fi
     echo "reproducible: two packs of {{ commit }} share sha256 ${sum_first%% *}"
 
-# Drop build output and return the generated module to its committed state
+# Drop generated trees and return the stamp module to its committed state
 clean:
-    rm -rf dist
+    rm -rf dist coverage reports
     rm -f *.tsbuildinfo
     git restore src/generated/buildinfo.ts
 
@@ -223,6 +223,72 @@ test *args:
 # Run the smoke suite as raw TypeScript under Node's type stripping.
 test-erasable:
     node --test "tests/erasable/**/*.test.ts"
+
+# Every gate before this one rules on code a contributor wrote. None of
+# them asks whether a test ever arrives at a given line, so a module
+# with nothing behind it clears the lot. vitest reads the v8 counters
+# the runtime keeps and vitest.config.ts holds the floor: every line,
+# branch, function, and statement, weighed per file rather than
+# averaged over the tree. The suite runs the same way it always does,
+# which makes this the inner-loop recipe. Read the Uncovered column,
+# write the test that reaches what it names.
+
+# Run the suite under coverage and hold each file to the floor.
+cover *args:
+    node_modules/.bin/vitest run --coverage "$@"
+
+# The same run rendered for a browser. Each source line comes out
+# shaded by whether a test reached it, and an unreached branch arm
+# shows against the arm beside it, which the terminal report can only
+# name by line number.
+
+# Render the coverage report as HTML and name the entry point.
+cover-html:
+    node_modules/.bin/vitest run --coverage --coverage.reporter=html
+    @echo "open coverage/index.html"
+
+# The floor already covers the whole tree, so on a clean branch this
+# adds nothing. What it buys is the order the answers arrive in: a pull
+# request that drops coverage on a line it touched hears about that
+# line here, before the merged total recomputes downstream and reports
+# a number instead. diff-cover comes from PyPI through uvx rather than
+# from the lockfile, the same arrangement the header gate uses, and
+# Renovate reads the pin off this line. Both parameters are positional
+# so CI can point the recipe at the merged report.
+
+# Fail when a line changed since [base] goes uncovered.
+cover-diff base="origin/main" report="coverage/lcov.info":
+    uvx --from 'diff-cover==10.4.1' diff-cover {{ report }} --compare-branch={{ base }} --fail-under=100
+
+# Fold the matrix back into one verdict. Each slot uploads its report
+# under its own directory, and the two normalizations below are what
+# lets those files agree: a Windows runner writes carriage returns and
+# spells its source paths with backslashes, so the same module would
+# otherwise merge as two. The staging directory gives the merger one
+# flat glob of uniquely named files, since every slot calls its report
+# lcov.info. The count guard fires when a download step silently
+# brought back nothing, which would otherwise merge to an empty report
+# that passes every check downstream.
+
+# Merge every slot's report from [dir] and check the merged result.
+[script]
+cover-merge dir="reports/coverage":
+    staged=$(mktemp -d)
+    trap 'rm -rf "$staged"' EXIT
+    slots=0
+    for report in {{ dir }}/*/lcov.info; do
+        [[ -e "$report" ]] || continue
+        slot=$(basename "$(dirname "$report")")
+        tr -d '\r' < "$report" | sed -e '/^SF:/s|\\|/|g' > "$staged/$slot.info"
+        slots=$((slots + 1))
+    done
+    if [[ "$slots" -eq 0 ]]; then
+        echo "no per-slot reports found under {{ dir }}" >&2
+        exit 1
+    fi
+    mkdir -p coverage
+    node_modules/.bin/lcov-result-merger "$staged/*.info" coverage/merged.info
+    node scripts/check-lcov.mjs coverage/merged.info
 
 # Typecheck the sources and the tests. tsc7 is named by path because
 # both compilers in devDependencies ship a tsc binary and only one of
@@ -379,9 +445,10 @@ lint-eslint:
 #
 # knip.json carries the two settings this tree needs. It names
 # src/cli.ts as the shipping entry and adds the type-assertion files
-# under tests, which nothing imports by design. Its ignore list holds
-# the packages recipes here run by path rather than import: biome,
-# cspell, the clone detector, the compiler that gates the sources, and
+# under tests plus the coverage checker under scripts, none of which
+# anything imports by design. Its ignore list holds the packages
+# recipes here run by path rather than import: biome, cspell, the clone
+# detector, the compiler that gates the sources, the report merger, and
 # the pair that reads the packed tarball.
 
 # Report files, exports, and dependencies nothing reaches.

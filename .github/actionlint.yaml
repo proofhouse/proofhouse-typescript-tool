@@ -1,0 +1,12 @@
+---
+# actionlint configuration.
+#
+# The coverage uploads in ci.yml write through GitHub's code-quality
+# permission scope, which arrived after actionlint's built-in list of
+# scope names and reads to it as a typo. Neither v1.7.12 nor the
+# upstream main branch carries the name yet, so no version bump clears
+# the finding. Drop this entry once a release knows the scope.
+paths:
+  .github/workflows/ci.yml:
+    ignore:
+      - 'unknown permission scope "code-quality"'

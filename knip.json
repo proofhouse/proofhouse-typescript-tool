@@ -1,11 +1,12 @@
 {
   "$schema": "./node_modules/knip/schema.json",
-  "entry": ["src/cli.ts!", "tests/types/*.types.ts"],
+  "entry": ["src/cli.ts!", "tests/types/*.types.ts", "scripts/check-lcov.mjs"],
   "ignoreDependencies": [
     "@arethetypeswrong/cli",
     "@biomejs/biome",
     "cspell",
     "jscpd",
+    "lcov-result-merger",
     "publint",
     "tsc7"
   ]
