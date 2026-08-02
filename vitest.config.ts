@@ -13,6 +13,13 @@ const config: ViteUserConfig = defineConfig({
   test: {
     include: ["tests/**/*.test.ts"],
     exclude: [...configDefaults.exclude, "tests/erasable/**"],
+    // Files and tests alike arrive in a drawn order rather than the order
+    // they were written in. A suite that only ever runs one way can come to
+    // lean on that way without anyone noticing. Shuffling makes such quiet
+    // coupling a failure while its cause is still close at hand. The seed
+    // behind a draw prints beside every summary, a passing one included, and
+    // `sequence.seed` is where that number goes to bring an order back.
+    sequence: { shuffle: true },
   },
 });
 

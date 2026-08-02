@@ -195,9 +195,23 @@ clean:
 
 # --- Test ---
 
+# The runner draws a fresh order for every invocation, so a run that
+# fails on coupling between two tests needs a way back to the order it
+# drew. vitest has no environment variable for its seed, and the flag
+# that carries one takes a value rather than reading the surroundings.
+# This recipe bridges the two: `VITEST_SEED=<n> just test` replays the
+# order printed beside a failing run, and a bare `just test` leaves the
+# draw alone. The pre-push hook calls the binary straight, since a hook
+# run has no earlier failure to reproduce.
+
 # Run tests
+[script]
 test *args:
-    node_modules/.bin/vitest run "$@"
+    if [[ -n "${VITEST_SEED:-}" ]]; then
+        node_modules/.bin/vitest run --sequence.seed="$VITEST_SEED" "$@"
+    else
+        node_modules/.bin/vitest run "$@"
+    fi
 
 # A second, much smaller suite that runs on the runtime alone: no vitest,
 # no transform, nothing between the sources and Node. What it proves is
