@@ -40,6 +40,12 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["tests/property/**"],
+      "linter": { "rules": { "suspicious": { "noMisplacedAssertion": "off" } } }
+    }
+  ],
   "javascript": { "formatter": { "quoteStyle": "double" } },
   "assist": { "enabled": true, "actions": { "source": { "organizeImports": "on" } } }
 }

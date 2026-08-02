@@ -13,6 +13,9 @@ const config: ViteUserConfig = defineConfig({
   test: {
     include: ["tests/**/*.test.ts"],
     exclude: [...configDefaults.exclude, "tests/erasable/**"],
+    // Settings that belong to every property at once, applied before the
+    // first suite loads rather than restated in each of them.
+    setupFiles: ["tests/setup-fc.ts"],
     // Files and tests alike arrive in a drawn order rather than the order
     // they were written in. A suite that only ever runs one way can come to
     // lean on that way without anyone noticing. Shuffling makes such quiet

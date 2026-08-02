@@ -22,6 +22,12 @@ Watch the syntax on two points. `v8 ignore next 3` looks like it names a count a
 
 Reviewers reject a bare hint with no reason, the same way they reject an undocumented lint suppression. `src/cli.ts` carries the one file-level hint here and states its reason inline.
 
+## Regression examples
+
+The property suites under `tests/property` keep no record of what has already broken. fast-check draws its cases afresh on every run and forgets them when the process ends, so a counterexample survives only if a change carries it. When a property fails, the report names the shrunk value it settled on along with a seed and a path through the shrinking tree. Copy that value into an ordinary test beside the property, watch the test fail for the same reason, then fix the source.
+
+Leave the property itself unseeded. Pinning a seed to hold a past failure trades away the search that found it, and the example test already holds that ground. The seed in a failure report is for reproducing the run while you work, not for committing.
+
 ## Prose lint output
 
 The toolchain already defaults to the agent template. Both `just lint-prose` and the prek vale hook pass `--output=proofhouse-agent.tmpl`, so add the flag yourself only when invoking vale directly on specific paths. The template, synced from the proofhouse style package, prints one self-contained line per finding (location, severity, rule, the exact matched text, and the replacement parameter when the rule defines one) plus a totals line, so you can apply fixes without re-reading context through separate commands. Empty output means a clean run, and the exit code carries the result.

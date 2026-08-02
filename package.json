@@ -21,6 +21,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@biomejs/biome": "2.5.5",
+    "@fast-check/vitest": "0.4.1",
     "@types/eslint-plugin-security": "3.0.1",
     "@types/node": "24.13.3",
     "@vitest/coverage-v8": "4.1.10",
@@ -31,6 +32,7 @@
     "eslint-plugin-security": "4.0.1",
     "eslint-plugin-tsdoc": "0.5.2",
     "expect-type": "1.4.0",
+    "fast-check": "4.9.0",
     "jiti": "2.7.0",
     "jscpd": "5.0.14",
     "knip": "6.29.0",
