@@ -67,8 +67,8 @@
   customManagers: [
     {
       // uvx-pinned Python tools in the Justfile have no native manager.
-      // Nothing matches this pattern yet; it is in place for the first
-      // such pin so the tool arrives already tracked.
+      // This pattern reads the name and exact version out of each --from
+      // argument, extras bracket and all, and resolves it on PyPI.
       customType: "regex",
       managerFilePatterns: ["/^Justfile$/"],
       matchStrings: ["--from '(?<depName>[a-z-]+)(\\[[a-z-,]+\\])?==(?<currentValue>[0-9.]+)'"],

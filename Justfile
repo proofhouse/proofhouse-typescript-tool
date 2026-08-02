@@ -398,6 +398,11 @@ lint-deadcode-production:
 # release that moves it has to move this line too. Scope arrives as
 # arguments because a clone spanning the sources and the suite is
 # worth the same look as one inside either.
+#
+# One limit belongs to the tool rather than to the flags: a clone whose
+# copy lands within roughly the first 28 lines of the receiving file
+# goes unreported at any --min-tokens, measured against 5.0.14, which
+# leaves the top of a file under thinner cover than the rest of it.
 
 # Report token sequences duplicated across the sources and the suite.
 lint-dup-code:
