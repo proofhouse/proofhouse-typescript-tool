@@ -258,7 +258,7 @@ cover-html:
 
 # Fail when a line changed since [base] goes uncovered.
 cover-diff base="origin/main" report="coverage/lcov.info":
-    uvx --from 'diff-cover==10.4.1' diff-cover {{ report }} --compare-branch={{ base }} --fail-under=100
+    uvx --from 'diff-cover==10.5.1' diff-cover {{ report }} --compare-branch={{ base }} --fail-under=100
 
 # Fold the matrix back into one verdict. Each slot uploads its report
 # under its own directory, and the two normalizations below are what
