@@ -1,10 +1,3 @@
----
-# Supply-chain settings for every install in this repository.
-
-# Five days of cooldown before a published version is installable here,
-# matching the org Renovate preset. It applies to transitive packages and
-# to lockfile regeneration too, so a compromised release cannot reach the
-# tree through a dependency of a dependency.
 minimumReleaseAge: 7200
 
 # Strict mode fails resolution outright on a package that is still inside
@@ -41,4 +34,4 @@ overrides:
   # range the pinned 8.65.0 cannot satisfy, so an unforced install puts
   # two copies of the package in the tree. One copy is what the typed
   # rules and the plugin both want to read.
-  "@typescript-eslint/utils": "8.65.0"
+  "@typescript-eslint/utils": "8.68.0"
