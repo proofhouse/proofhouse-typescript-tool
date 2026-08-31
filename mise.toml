@@ -2,5 +2,5 @@
 # pins live here. CI pins its own matrix, and the packageManager field in
 # package.json keeps pnpm self-enforcing wherever the repository is used.
 [tools]
-node = "24.18.1"
+node = "24.20.0"
 pnpm = "11.17.0"
