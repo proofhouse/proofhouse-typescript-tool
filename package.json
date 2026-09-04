@@ -28,7 +28,7 @@
     "cspell": "10.0.1",
     "dependency-cruiser": "18.1.0",
     "eslint": "10.8.0",
-    "eslint-plugin-jsdoc": "63.3.1",
+    "eslint-plugin-jsdoc": "64.3.2",
     "eslint-plugin-security": "4.0.1",
     "eslint-plugin-tsdoc": "0.5.2",
     "expect-type": "1.4.0",
