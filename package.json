@@ -34,7 +34,7 @@
     "expect-type": "1.4.0",
     "fast-check": "4.9.0",
     "jiti": "2.7.0",
-    "jscpd": "5.0.14",
+    "jscpd": "5.1.1",
     "knip": "6.29.0",
     "lcov-result-merger": "6.0.0",
     "publint": "0.3.22",
