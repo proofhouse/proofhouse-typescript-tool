@@ -42,3 +42,6 @@ overrides:
   # two copies of the package in the tree. One copy is what the typed
   # rules and the plugin both want to read.
   "@typescript-eslint/utils": "8.65.0"
+minimumReleaseAgeExclude:
+  # Renovate security update: vitest@4.1.11
+  - vitest@4.1.11
