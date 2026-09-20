@@ -21,7 +21,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@biomejs/biome": "2.5.5",
-    "@fast-check/vitest": "0.4.1",
+    "@fast-check/vitest": "0.5.0",
     "@types/eslint-plugin-security": "3.0.1",
     "@types/node": "24.13.3",
     "@vitest/coverage-v8": "4.1.10",
